@@ -24,6 +24,7 @@ The rest of the code is not included in the provided snippet, but you would cont
 
 
 import getpass
+import datetime
 
 
 class User:
@@ -39,10 +40,12 @@ class User:
     # Rest of your code goes here...
 
 
-    def __init__(self, username, password, number_phone=None):
+    def __init__(self, username, password,birthdate, number_phone=None):
         self.username = self._validate_username(username)  # Assigns the validated username to the 'username' attribute of the object
         self._password = self._validate_password(password)  # Assigns the validated password to the '_password' attribute (note the underscore indicating it is intended to be private)
         self.number_phone = number_phone  # Assigns the provided 'number_phone' parameter value to the 'number_phone' attribute of the object
+        self.birthdate = birthdate
+        self.registration_date = datetime.datetime.now()
         self.id = User._generate_user_id()  # Automatically generate a unique ID using the '_generate_user_id()' method defined in the 'User' class
 
     @classmethod  # Decorator to indicate that the following method is a class method

@@ -28,6 +28,7 @@ The code follows a modular approach, separating functionalities into different f
 """
 
 import getpass
+import datetime
 from users import User
 
 def main():
@@ -51,14 +52,17 @@ def main():
             # Prompting user for input
             username = input("Please enter a username: ")
             password = getpass.getpass("Please enter a password: ")
+            birthday_str = input("Enter your date of birth in the format (YYYY-MM-DD HH:MM:SS):")
+            birthday = datetime.datetime.strptime(birthday_str, "%Y-%m-%d")
             number_phone = input("Please enter a phone number (optional): ")
+            birthdate = birthday.strftime("%Y-%m-%d")
         
             # Checking if optional phone number is provided
             if number_phone == "":
                 number_phone = None
         
             # Creating a new user object
-            new_user = User(username, password, number_phone)
+            new_user = User(username, password,birthdate, number_phone)
         
             # Adding the new user to a dictionary of users
             users[new_user.id] = new_user
@@ -97,7 +101,10 @@ def main():
 
                     if user_choice == "1":
                         # Displaying user information (username and phone number)
-                        print(found_user.username, found_user.number_phone)
+                        print("Username:", found_user.username)
+                        print("Birthdate:", found_user.birthdate)  # نمایش تاریخ تولد
+                        print("Registration Date:", found_user.registration_date)  # نمایش تاریخ ثبت نام
+                        print("Phone Number:", found_user.number_phone)
                     elif user_choice == "2":
                         # Editing user information
                         new_username = input("New username (leave blank to keep current): ")
