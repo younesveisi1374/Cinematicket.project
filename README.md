@@ -48,7 +48,5 @@ This Python program demonstrates a simple user registration and login system. It
 2. Run `main.py` using Python 3: `python main.py`.
 
 ## Author
-Younes VEisi
+Younes Veisi
 
-## License
-This project is licensed under the [License Name] - see the [LICENSE.md](LICENSE.md) file for details.
