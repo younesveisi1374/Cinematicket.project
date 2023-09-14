@@ -1,259 +1,266 @@
 """
-User Module Documentation
+This code is a program to manage users and bank cards using SQLite database. The code includes two main files `main.py` and `users.py`.
 
-This code defines a module that provides functionality related to UUID generation and user authentication. It imports the `getpass` module and then defines a class called `User`.
+In the ``users.py'' file, a class called ``sqlite_connection'' is defined, which is responsible for managing the connection to the SQLite database and creating the required tables for users and bank cards. This class has methods for creating tables and connecting to the database.
 
-The `User` class represents a user in the system and handles user-related operations such as counting users and storing usernames. Here's a breakdown of what each part of the code does:
+Also, a class named `User` is defined which inherits from `sqlite_connection` class. This class has methods for registering new users, logging in, searching for user information, editing user information, and managing bank cards. Also, this class has methods for adding a new bank card to the user account, displaying bank cards, editing bank card information and deleting a bank card.
 
-1. The `class User` block is the definition of the `User` class.
+``main.py'' code contains functions related to the program's user interface. This program allows the user to perform tasks such as registration, login, edit user information, change password and manage their bank cards. Functions have been used to clear the terminal and display menus and various options for the user.
 
-2. Inside the `User` class, there are some class-level attributes: `_user_counter` and `_usernames`. `_user_counter` is used to keep track of the total number of users, while `_usernames` is a set used to store all the usernames.
-
-3. The `__init__` method is the constructor for the `User` class. It takes in the `username`, `password`, and optionally the `number_phone`. Inside the constructor, it assigns the validated `username` to the `username` attribute of the object. It also assigns the validated `password` to the `_password` attribute (note the underscore indicating it is intended to be private). The provided `number_phone` parameter value is assigned to the `number_phone` attribute of the object. Finally, it generates a unique ID for the user by calling the `_generate_user_id()` method defined in the `User` class.
-
-4. The `_generate_user_id(cls)` method is a class method that generates a unique ID as a number. It increments the `_user_counter` class attribute by 1 and returns the updated value as the generated user ID.
-
-5. The `_validate_username(self, username)` method is an instance method that validates the username and checks for duplicates. It checks if the given username already exists in the set of usernames (`User._usernames`). If it does, it raises a `ValueError` with the message "Username is already taken". If the username is not taken, it adds the username to the set of usernames and returns the validated username.
-
-6. The `_validate_password(self, password)` method is an instance method that validates the password and checks for the minimum length. It checks if the length of the password is less than 4 characters. If it is, it raises a `ValueError` with the message "Password must be at least 4 characters long". If the password is valid, it returns the validated password.
-
-7. The `update_info(self, new_username=None, new_number_phone=None)` method allows the user to update their information with an optional new username and/or a new number phone. It takes in two parameters: `new_username` (a string) and `new_number_phone` (a string). If a new username is provided, it updates the `username` attribute with the new value. If a new number phone is provided, it updates the `number_phone` attribute with the new value.
-
-8. The `change_password(self)` method prompts the user to enter their current password and then allows them to change their password. It uses the `getpass` module to securely prompt for passwords. First, it prompts the user to enter their current password. If the entered current password does not match the stored password (`self._password`), it prints an error message ("Error: Incorrect current password") and returns. If the entered current password matches the stored password, it prompts the user to enter a new password and confirms the new password. If the entered new passwords do not match, it prints an error message ("Error: New passwords do not match") and returns. If the entered new passwords match, it updates the stored password with the new password and prints a success message ("Password changed successfully").
-
-The rest of the code is not included in the provided snippet, but you would continue adding your own code below the `class User` block.
+Overall, this program provides a simple user and financial management environment that stores and manages user and bank card information using a SQLite database.
 """
-
-import getpass
+import sqlite3
 import datetime
+from sqlite3 import Error
 
 
-class User:
-    """
-    Represents a user in the system.
+# Define a class for managing SQLite database connections
+class sqlite_connection:
+    def __init__(self):
+        # Connect to an SQLite database file named "mydatabase.db"
+        self.connector = sqlite3.connect("mydatabase.db")
+        # Create a cursor object to execute SQL queries
+        self.cursor = self.connector.cursor()
 
-    This class handles user related operations such as counting users and storing usernames.
-    """
-
-    _user_counter = 0  # Local variable to calculate user numbers
-    _usernames = set()  # Set to store usernames
-    card_number_counter = 1
-
-    # Rest of your code goes here...
-
-    def __init__(self, username, password, birthdate, number_phone=None):
-        self.username = self._validate_username(
-            username
-        )  # Assigns the validated username to the 'username' attribute of the object
-        self._password = self._validate_password(
-            password
-        )  # Assigns the validated password to the '_password' attribute (note the underscore indicating it is intended to be private)
-        self.number_phone = number_phone  # Assigns the provided 'number_phone' parameter value to the 'number_phone' attribute of the object
-        self.birthdate = birthdate
-        self.registration_date = datetime.datetime.now()
-        self.id = (
-            User._generate_user_id()
-        )  # Automatically generate a unique ID using the '_generate_user_id()' method defined in the 'User' class
-        global card_number_counter
-        self.id_card_number = User.card_number_counter
-        User.card_number_counter += 1
-        self.bank_cards = {}
-
-    @classmethod  # Decorator to indicate that the following method is a class method
-    def _generate_user_id(cls):
+    def create_table(self):
+        # Create a table for user registration data if it doesn't already exist
+        self.cursor.execute(
+            """CREATE TABLE IF NOT EXISTS users(
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                username TEXT NOT NULL UNIQUE,
+                password TEXT NOT NULL,
+                birthdate DATE,
+                number_phone Text,
+                registration_date TEXT
+                )
         """
-        Generate a unique ID as a number
-        """
-        cls._user_counter += 1  # Increment the _user_counter class attribute by 1
-        return (
-            cls._user_counter
-        )  # Return the updated value of _user_counter as the generated user ID
-
-    def _validate_username(self, username):
-        """
-        Validate the username and check for duplicates.
-        """
-        if (
-            username in User._usernames
-        ):  # Check if the given username already exists in the set of usernames
-            raise ValueError("Username is already taken.")
-        User._usernames.add(username)  # Add the username to the set of usernames
-        return username
-
-    def _validate_password(self, password):
-        """
-        Validate the password and check for minimum length.
-        """
-        if len(password) < 4:  # Check if the password length is less than 4
-            raise ValueError("Password must be at least 4 characters long.")
-        return password
-
-    def update_info(self, new_username=None, new_number_phone=None):
-        """
-        Update the user's information with optional new username and/or new number phone.
-
-        Args:
-            new_username (str): New username to replace the existing one. Defaults to `None`.
-            new_number_phone (str): New number phone to replace the existing one. Defaults to `None`.
-        """
-        if new_username:  # Check if a new username is provided
-            self.username = (
-                new_username  # Update the username attribute with the new value
-            )
-        if new_number_phone:  # Check if a new number phone is provided
-            self.number_phone = (
-                new_number_phone  # Update the number_phone attribute with the new value
-            )
-
-    def change_password(self):
-        """
-        Prompts the user to enter their current password and returns it as a string.
-        """
-        current_password = getpass.getpass(
-            "Current password: "
-        )  # Prompt the user to enter their current password using getpass module
-
-        if (
-            self._password != current_password
-        ):  # Check if the entered current password does not match the stored password
-            print("Error: Incorrect current password.")
-            return
-
-        new_password = getpass.getpass(
-            "New password: "
-        )  # Prompt the user to enter the new password
-        new_password_confirm = getpass.getpass(
-            "Confirm new password: "
-        )  # Prompt the user to confirm the new password
-
-        if (
-            new_password != new_password_confirm
-        ):  # Check if the entered new passwords do not match
-            print("Error: New passwords do not match.")
-            return
-
-        self._password = (
-            new_password  # Update the stored password with the new password
         )
-        print("Password changed successfully.")
+        # Create a table for bank card data if it doesn't already exist
+        self.cursor.execute(
+            """CREATE TABLE IF NOT EXISTS bank_cards(
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        user_id INTEGER NOT NULL,
+                        card_name TEXT NOT NULL,
+                        card_number TEXT NOT NULL,
+                        card_expire_date TEXT NOT NULL,
+                        current_card_balance INTEGER NOT NULL,
+                        card_CVV2 INTEGER NOT NULL,
+                        FOREIGN KEY (user_id) REFERENCES users(id))
+            """
+        )
+        # Commit the changes made to the database
+        self.connector.commit()
+
+
+class User(sqlite_connection):
+    def __init__(self):
+        super().__init__()
+        self.registration_date = datetime.datetime.now()
+
+    def register_user(self, username, password, birthdate, number_phone=None):
+        # Insert user registration data into the "users" table
+        self.cursor.execute(
+            """INSERT INTO users(
+                username,password,birthdate,number_phone,registration_date
+                ) VALUES (?,?,?,?,?)""",
+            (username, password, birthdate, number_phone, self.registration_date),
+        )
+        # Commit the changes made to the database
+        self.connector.commit()
+
+    def select_data(self, username, password):
+        # Select the username and password from the "users" table where the given username and password match
+        self.cursor.execute(
+            "SELECT username, password FROM users WHERE username=? AND password=?",
+            (username, password),
+        )
+        # Fetch a single row (result) from the executed query
+        result = self.cursor.fetchone()
+
+        return result
+
+    def select_user(self, username, password):
+        # Select all columns (*) from the "users" table where the given username and password match
+        self.cursor.execute(
+            "SELECT * FROM users WHERE username=? AND password=?",
+            (username, password),
+        )
+        # Fetch all rows that match the executed query
+        rows = self.cursor.fetchall()
+        # Iterate through the rows and return the first row found
+        for row in rows:
+            return row
+
+    def update_info(self, new_username, new_number_phone, find_id):
+        # Check if either new_username or new_number_phone is provided
+        if new_username or new_number_phone:
+            # Update the username and number_phone for the user with find_id
+            self.cursor.execute(
+                "UPDATE users SET username = ?, number_phone = ? WHERE id = ?",
+                (new_username, new_number_phone, find_id),
+            )
+            # Commit the changes to the database
+            self.connector.commit()
+        else:
+            # If neither new_username nor new_number_phone is provided
+            # Retrieve the previous values of username and number_phone for the user with find_id
+            self.cursor.execute(
+                "SELECT username, number_phone FROM users WHERE id = ?",
+                (find_id,),
+            )
+            previous_values = self.cursor.fetchone()
+            if previous_values:
+                # If previous values exist
+                # Extract the previous username and number_phone
+                previous_username, previous_number_phone = previous_values
+                # Use the previous values if the corresponding new values are not provided
+                new_username = new_username or previous_username
+                new_number_phone = new_number_phone or previous_number_phone
+                # Update the username and number_phone for the user with find_id using the new values
+                self.cursor.execute(
+                    "UPDATE users SET username = ?, number_phone = ? WHERE id = ?",
+                    (new_username, new_number_phone, find_id),
+                )
+                # Commit the changes to the database
+                self.connector.commit()
+            else:
+                # If previous values do not exist, print a message indicating that the user does not exist
+                print("User does not exist")
+
+    def change_password(self, new_password, confirm_password, find_id):
+        # Check if both new_password and confirm_password are provided
+        if new_password and confirm_password:
+            # Update the password for the user with find_id using the confirm_password
+            self.cursor.execute(
+                "UPDATE users SET password = ? WHERE id = ?",
+                (confirm_password, find_id),
+            )
+            # Commit the changes to the database
+            self.connector.commit()
+        else:
+            # If either new_password or confirm_password is not provided
+            # Retrieve the previous value of password for the user with find_id
+            self.cursor.execute(
+                "SELECT password FROM users WHERE id = ?",
+                (find_id,),
+            )
+            previous_values = self.cursor.fetchone()
+            if previous_values:
+                # If previous value exists
+                # Use the previous value as the confirm_password
+                confirm_password = previous_values
+                # Update the password for the user with find_id using the confirm_password
+                self.cursor.execute(
+                    "UPDATE users SET password = ? WHERE id = ?",
+                    (confirm_password, find_id),
+                )
+                # Commit the changes to the database
+                self.connector.commit()
 
     def add_bank_card(
-        self, card_name, card_number, card_expire_date, current_card_balance, card_CVV2
+        self,
+        user_id,
+        card_name,
+        card_number,
+        card_expire_date,
+        current_card_balance,
+        card_CVV2,
     ):
-        card_info = {
-            "Card Name": card_name,
-            "ard Number": card_number,
-            "Expire Date": card_expire_date,
-            "Minimum Balance": current_card_balance,
-            "CVV2": card_CVV2,
-        }
-        self.bank_cards[self.id_card_number] = card_info
+        # Insert a new bank card entry into the bank_cards table with the provided parameters
+        self.cursor.execute(
+            """INSERT INTO bank_cards(
+                user_id,card_name,card_number,card_expire_date,current_card_balance,card_CVV2
+                ) VALUES (?,?,?,?,?,?)""",
+            (
+                user_id,
+                card_name,
+                card_number,
+                card_expire_date,
+                current_card_balance,
+                card_CVV2,
+            ),
+        )
+        # Commit the changes to the database
+        self.connector.commit()
 
-    class check_info_add_card_bank:
-        def check_card_number(self, card_number):
-            result = len(card_number) != 16 or not card_number.isdigit()
+    def select_bank_card(self):
+        # Retrieve all rows from the bank_cards table
+        self.cursor.execute(
+            "SELECT * FROM bank_cards",
+            (),
+        )
+        rows = self.cursor.fetchall()
+        # Return the retrieved rows
+        return rows
+
+    def check_card_id(self, card_id):
+        # Retrieve the card_name and card_number for the bank card with the given card_id from the bank_cards table
+        self.cursor.execute(
+            "SELECT card_name, card_number FROM bank_cards WHERE id = ?",
+            (card_id,),
+        )
+        result = self.cursor.fetchone()
+        if result is not None:
+            # If a row is found for the given card_id, return the result
             return result
 
-        def check_card_expire_date(self, card_expire_date):
-            result = (
-                len(card_expire_date) != 2
-                or len(card_expire_date[0]) != 2
-                or len(card_expire_date[1]) != 2
+    def update_info_bank_cards(self, card_name, card_number, card_id):
+        # Check if both card_name and card_number are provided
+        if card_name and card_number:
+            # Update the card_name and card_number for the bank card with the given card_id
+            self.cursor.execute(
+                "UPDATE bank_cards SET card_name = ?, card_number = ? WHERE id = ?",
+                (card_name, card_number, card_id),
             )
-            return result
+        else:
+            # If either card_name or card_number is not provided, retrieve the previous values for the bank card with the given card_id
+            self.cursor.execute(
+                "SELECT card_name, card_number FROM bank_cards WHERE id = ?",
+                (card_id,),
+            )
+            previous_values = self.cursor.fetchone()
+            if previous_values is not None:
+                previous_card_name = previous_values[0]
+                previous_card_number = previous_values[1]
+                # Determine the new values for card_name and card_number based on the provided values or the previous values
+                new_card_name = card_name or previous_card_name
+                new_card_number = card_number or previous_card_number
+                # Update the bank card with the new values
+                self.cursor.execute(
+                    "UPDATE bank_cards SET card_name = ?, card_number = ? WHERE id = ?",
+                    (new_card_name, new_card_number, card_id),
+                )
+                print("Update bank card was successful")
+        # Commit the changes to the database
+        self.connector.commit()
 
-        def check_current_card_balance(self, current_card_balance):
-            min_amount = 500000
-            result = int(current_card_balance) < min_amount
-            return result
+    def delete_bank_card(self, card_id):
+        try:
+            # Delete the bank card based on the provided card ID
+            self.cursor.execute("DELETE FROM bank_cards WHERE id = ?", (card_id,))
+            # Commit the changes to the database
+            self.connector.commit()
+            print("Bank card successfully deleted.")
 
-        def check_card_CVV2(self, card_CVV2):
-            result = len(str(card_CVV2)) != 4
-            return result
+            # Reset the IDs in the bank_cards table
+            self.cursor.execute("UPDATE bank_cards SET id = id - 1")
+            # Commit the changes to the database
+            self.connector.commit()
 
-        @staticmethod
-        def show_bank_cards(found_user, card_CVV2, card_expire_date):
-            print("Bank Cards: ")
-            if found_user.bank_cards:
-                for (
-                    id_card_number,
-                    card_info,
-                ) in found_user.bank_cards.items():
-                    print(f"Card ID : {id_card_number}")
-                    for key, value in card_info.items():
-                        if value == card_CVV2:
-                            continue
-                        if value == card_expire_date:
-                            val = "/".join(card_expire_date)
-                            print(f"{key} : {val}")
-                        else:
-                            print(f"{key} : {value}")
-            else:
-                print("You have no bank cards.")
+            # Reorder the IDs starting from 1
+            self.cursor.execute(
+                "UPDATE bank_cards SET id = ROW_NUMBER() OVER (ORDER BY id)"
+            )
+            # Commit the changes to the database
+            self.connector.commit()
 
-        @staticmethod
-        def edit_card(found_user, user_choice):
-            if found_user.bank_cards:
-                for (
-                    id_card_number,
-                    card_info,
-                ) in found_user.bank_cards.items():
-                    if id_card_number == user_choice:
-                        # update dict
-                        card_name = input("Enter name for your card: ")
-                        card_number = input("Enter your card number (16 digits): ")
-                        if found_user.check_info_add_card_bank().check_card_number(
-                            card_number
-                        ):
-                            print(
-                                "Error: Invalid card number. It should be exactly 16 digits."
-                            )
-                        card_expire_date = input(
-                            "Enter the expiration date of your card (YY/MM): "
-                        ).split("/")
-                        if found_user.check_info_add_card_bank().check_card_expire_date(
-                            card_expire_date
-                        ):
-                            print(
-                                "Error: Enter the expiration date in the correct format (YY/MM)."
-                            )
-                        current_card_balance = int(
-                            input(
-                                "Enter the current balance of your card in Rials (minimum 500,000 Rials): "
-                            )
-                        )
-                        if found_user.check_info_add_card_bank().check_current_card_balance(
-                            current_card_balance
-                        ):
-                            print(
-                                "Error: Enter a valid current balance of your card (minimum 500,000 Rials)."
-                            )
-                        card_CVV2 = int(
-                            input(
-                                "Conditions:\n 1- CVV2 number on a bank card consists of exactly four digits.\n 2- CVV2 number must contain only digits (0 to 9).\nEnter the CVV2 of your card (4 digits): "
-                            )
-                        )
-                        if found_user.check_info_add_card_bank().check_card_CVV2(
-                            card_CVV2
-                        ):
-                            print(
-                                "CVV2 number must be exactly four digits and contain only digits (0-9)."
-                            )
+            print("Bank card IDs reset.")
+        except Error as e:
+            print(f"An error occurred: {e}")
 
-                        card_info["Card Name"] = card_name
-                        card_info["Card Number"] = card_number
-                        card_info["Expire Date"] = "/".join(card_expire_date)
-                        card_info["Minimum Balance"] = current_card_balance
-                        card_info["CVV2"] = card_CVV2
 
-                        print("Updated Card Information: ")
-                        print(f"Card ID : {id_card_number}")
-                        for key, value in card_info.items():
-                            print(f"{key} : {value}")
-
-        def delete_bank_card(found_user, card_id):
-            if card_id in found_user.bank_cards:
-                del found_user.bank_cards[card_id]
-                print("The Bank card been successfully Deleted.")
-            else:
-                print("Error: Bank card with the specified ID not found.")
+if __name__ == "__main__":
+    db = sqlite_connection()
+    db.create_table()
+    # myuser = User()
+    # sqlite_connection.select_data()
