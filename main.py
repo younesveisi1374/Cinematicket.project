@@ -14,7 +14,6 @@ Inside the loop, there are three options:
 
 Overall, this script provides a simple user registration, login, and bank account management system.
 """
-import getpass
 import datetime
 from users import User
 import os
@@ -63,13 +62,12 @@ def main():
             username = input("Please enter a username: ")
 
             while True:
-                password = getpass.getpass("Please enter a password: ")
+                password = input("Please enter a password: ")
                 if len(password) > 4:
                     break
                 else:
                     print("Password must be at least 5 characters long.")
                     continue
-            global birthdate
             while True:
                 birthday_str = input(
                     "Enter your date of birth in the format (YYYY-MM-DD): "
@@ -92,13 +90,13 @@ def main():
             myuser.register_user(username, password, birthdate, number_phone)
 
             # Printing a success message
-            print("Registration successful.")
             clear_terminal()
+            print("Registration successful.")
 
         elif choice == "2":
             # User login
             username = input("Please enter your username: ")
-            password = getpass.getpass("Please enter your password: ")
+            password = input("Please enter your password: ")
 
             found_user = None  # Variable for storing the found user
             myuser.select_data(username, password)
@@ -142,8 +140,8 @@ def main():
                         clear_terminal()
 
                     elif user_choice == "3":
-                        new_password = getpass.getpass("New password: ")
-                        confirm_password = getpass.getpass("Confirm new password: ")
+                        new_password = input("New password: ")
+                        confirm_password = input("Confirm new password: ")
 
                         # Check if the new password and confirmation match
                         if new_password == confirm_password:
@@ -290,7 +288,7 @@ def main():
                         # Log out the user
                         break
         else:
-            print("Error: Unknown operation.")
+            print("Login Failed!!")
 
 
 if __name__ == "__main__":
