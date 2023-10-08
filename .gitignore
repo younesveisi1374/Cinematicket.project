@@ -1,3 +1,6 @@
 .vscode/
 .git/
 __pycache__/
+.github/
+qodana.yaml
+.idea/

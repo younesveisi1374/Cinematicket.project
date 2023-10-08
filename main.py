@@ -16,7 +16,7 @@ Overall, this script provides a simple user registration, login, and bank accoun
 """
 import getpass
 import datetime
-from users import sqlite_connection, User
+from users import User
 import os
 
 
@@ -43,7 +43,6 @@ def main():
     an infinite loop to continue running the program until interrupted.
     """
 
-    db = sqlite_connection()
     myuser = User()
     exit_flag = False  # Flag variable for controlling loop exit
 
@@ -70,14 +69,14 @@ def main():
                 else:
                     print("Password must be at least 5 characters long.")
                     continue
-
+            global birthdate
             while True:
                 birthday_str = input(
                     "Enter your date of birth in the format (YYYY-MM-DD): "
                 )
                 try:
                     birthday = datetime.datetime.strptime(birthday_str, "%Y-%m-%d")
-                    birthdate = birthday.strftime("%Y-%m-%d")
+                    birthdate: str = birthday.strftime("%Y-%m-%d")
                     break
                 except ValueError:
                     print("birthdate input is wrong. please try again!")
@@ -112,6 +111,7 @@ def main():
 
             if found_user:
                 while True:
+                    print("\nLogin Successful Dear", found_user[1])
                     print("\nUser Menu:")
                     print("1. Display user information")
                     print("2. Edit user information")
@@ -258,8 +258,6 @@ def main():
                                     # Check if the provided card ID exists in the user's bank cards
                                     result = myuser.check_card_id(card_id)
                                     if result:
-                                        
-                    
                                         card_name = input("New name for your card: ")
                                         card_number = input(
                                             "New card number (16 digits): "
@@ -282,14 +280,14 @@ def main():
                                 myuser.delete_bank_card(card_id)
                                 clear_terminal()
                             elif bank_choice == "5":
-                                 # Go back to the User Menu
+                                # Go back to the User Menu
                                 break
 
                             else:
                                 print("Error: Unknown operation.")
                         clear_terminal()
                     elif user_choice == "5":
-                         # Log out the user
+                        # Log out the user
                         break
         else:
             print("Error: Unknown operation.")
