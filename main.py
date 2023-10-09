@@ -1,19 +1,23 @@
 """
-The code provided is a Python script that defines several functions for user registration and login, as well as managing bank accounts. 
+This script implements a basic user management system with features like user registration,
+login, user information editing, password change, bank card management, wallet management, and subscription management.
 
-At the top of the file, several modules are imported: `getpass`, `datetime`, `sqlite_connection` from a custom module `users`, and `os`.
+Functions:
+- clear_terminal(): Clears the terminal screen based on the user's operating system.
+- main(): Entry point of the program. Initializes a user dictionary and enters an infinite loop to manage user interactions.
 
-The first function defined is `clear_terminal()`. This function checks the user's operating system and uses the appropriate command to clear the terminal screen.
+Usage:
+1. Run the script to start the user management system.
+2. The main function presents a menu with options to register a new user, log in, or exit.
+3. After logging in, users can access additional menus for managing their information, bank cards, wallet, and subscriptions.
 
-Next, the `main()` function is defined. This function serves as the entry point of the program. It initializes a database connection, creates an instance of the `User` class, and sets up a loop to display a menu of options to the user until they choose to exit.
-
-Inside the loop, there are three options:
-1. If the user chooses "0", the `exit_flag` variable is set to True, causing the loop to exit.
-2. If the user chooses "1", they are prompted to enter their username, password, date of birth, and optional phone number. These details are used to register a new user in the database.
-3. If the user chooses "2", they are prompted to enter their username and password. The entered credentials are checked against the database, and if they match, the user is logged in and presented with a submenu of options. These options allow the user to view and edit their information, change their password, and manage their bank account.
-
-Overall, this script provides a simple user registration, login, and bank account management system.
+Note:
+- User data is stored in an SQLite database.
+- Bank card information includes card name, card number, expiration date, current card balance, and CVV2.
+- Wallet functionality allows users to recharge their wallet balance using bank cards and buy subscriptions.
+- The script includes basic input validation for user inputs.
 """
+
 import datetime
 from users import User
 import os

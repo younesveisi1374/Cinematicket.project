@@ -1,14 +1,36 @@
 """
-This code is a program to manage users and bank cards using SQLite database. The code includes two main files `main.py` and `users.py`.
+This script defines classes and methods for managing user registration, bank card information,
+wallet balance, and subscriptions in an SQLite database.
 
-In the ``users.py'' file, a class called ``sqlite_connection'' is defined, which is responsible for managing the connection to the SQLite database and creating the required tables for users and bank cards. This class has methods for creating tables and connecting to the database.
+Classes:
+- sqlite_connection: Manages SQLite database connections.
+- User: Inherits from sqlite_connection and provides user-related functionalities.
 
-Also, a class named `User` is defined which inherits from `sqlite_connection` class. This class has methods for registering new users, logging in, searching for user information, editing user information, and managing bank cards. Also, this class has methods for adding a new bank card to the user account, displaying bank cards, editing bank card information and deleting a bank card.
+Methods:
+- sqlite_connection.create_table(): Creates database tables for user registration and bank card data if they don't exist.
+- sqlite_connection.wallet(): Creates a table for wallet balance data if it doesn't exist.
+- User.register_user(username, password, birthdate, number_phone=None): Registers a new user with the provided information.
+- User.select_data(username, password): Selects the username and password from the "users" table.
+- User.select_user(username, password): Selects all user data based on the provided username and password.
+- User.update_info(new_username, new_number_phone, find_id): Updates user information based on the provided parameters.
+- User.change_password(new_password, confirm_password, find_id): Changes the user's password.
+- User.add_bank_card(user_id, card_name, card_number, card_expire_date, current_card_balance, card_CVV2): Adds a new bank card entry.
+- User.select_bank_card(): Retrieves all bank card entries.
+- User.check_card_id(card_id): Checks if a bank card with the given card_id exists.
+- User.update_info_bank_cards(card_name, card_number, card_id): Updates bank card information.
+- User.delete_bank_card(card_id): Deletes a bank card entry and resets card IDs.
+- User.show_wallet_balance(): Retrieves the wallet balance.
+- User.update_wallet_balance(wallet_recharge, card_id_wallet, new_card_balance): Updates the wallet balance and bank card balance.
+- User.update_subscription(new_Subscription, user_id): Updates the user's subscription and subscription expiration date.
+- User.check_subscription(user_id): Checks the user's subscription status and updates it if expired.
 
-``main.py'' code contains functions related to the program's user interface. This program allows the user to perform tasks such as registration, login, edit user information, change password and manage their bank cards. Functions have been used to clear the terminal and display menus and various options for the user.
-
-Overall, this program provides a simple user and financial management environment that stores and manages user and bank card information using a SQLite database.
+Usage:
+1. Create an instance of the sqlite_connection class to establish a database connection.
+2. Call the create_table method to create necessary database tables.
+3. Create an instance of the User class for user-related operations.
+4. Use the provided methods to perform various database operations.
 """
+
 import sqlite3
 from sqlite3 import Error
 from datetime import datetime, timedelta

@@ -1,3 +1,26 @@
+"""
+This unit test file tests the functionality of the user registration and login system implemented in the 'main.py' script.
+
+Tested Functions and Classes:
+- main(): Entry point of the program that simulates user interactions for registration and login.
+- TestUserRegistrationLogin(unittest.TestCase): A test case class that contains individual test methods for user registration and login scenarios.
+
+Test Scenarios:
+1. `test_register_new_user`: Tests the registration of a new user. It simulates user input for registration and checks if the registration is successful.
+
+2. `test_main_login_success`: Tests the successful login of an existing user. It simulates user input for login and validates the login success message.
+
+3. `test_main_login_failure`: Tests the failed login attempt of a user with incorrect credentials. It simulates user input for login and validates the login failure message.
+
+Usage:
+1. Run this unit test script to verify the correctness of the user registration and login functionality.
+2. The `unittest` module is used to define and run test cases.
+
+Note:
+- The `@patch` decorator is used to mock the `input` function to provide predefined input values during testing.
+- The test cases capture the program's output and assert against expected output messages.
+"""
+
 import unittest
 from unittest.mock import patch
 from io import StringIO
