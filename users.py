@@ -10,8 +10,8 @@ Also, a class named `User` is defined which inherits from `sqlite_connection` cl
 Overall, this program provides a simple user and financial management environment that stores and manages user and bank card information using a SQLite database.
 """
 import sqlite3
-import datetime
 from sqlite3 import Error
+from datetime import datetime, timedelta
 
 
 # Define a class for managing SQLite database connections
@@ -31,7 +31,9 @@ class sqlite_connection:
                 password TEXT NOT NULL,
                 birthdate DATE,
                 number_phone Text,
-                registration_date TEXT
+                registration_date TEXT,
+                Subscription TEXT DEFAULT 'Silver',
+                subscription_balance TEXT DEFAULT 'You have not purchased any special subscription'
                 )
         """
         )
@@ -48,14 +50,36 @@ class sqlite_connection:
                         FOREIGN KEY (user_id) REFERENCES users(id))
             """
         )
+
         # Commit the changes made to the database
         self.connector.commit()
 
+    def wallet(self):
+        self.cursor.execute(
+            """CREATE TABLE IF NOT EXISTS Wallet_balance(
+            Wallet_balance INTEGER)
+            """
+        )
+
+        # Check if the table is empty
+        self.cursor.execute("SELECT COUNT(*) FROM Wallet_balance")
+        count = self.cursor.fetchone()[0]
+
+        if count == 0:
+            self.cursor.execute(
+                """INSERT INTO Wallet_balance(
+                    Wallet_balance
+                    ) VALUES (?)""",
+                ("0",)  # Pass the value as a tuple
+            )
+
+        # Commit the changes made to the database
+        self.connector.commit()
 
 class User(sqlite_connection):
     def __init__(self):
         super().__init__()
-        self.registration_date = datetime.datetime.now()
+        self.registration_date = datetime.now()
 
     def register_user(self, username, password, birthdate, number_phone=None):
         # Insert user registration data into the "users" table
@@ -158,13 +182,13 @@ class User(sqlite_connection):
                 self.connector.commit()
 
     def add_bank_card(
-        self,
-        user_id,
-        card_name,
-        card_number,
-        card_expire_date,
-        current_card_balance,
-        card_CVV2,
+            self,
+            user_id,
+            card_name,
+            card_number,
+            card_expire_date,
+            current_card_balance,
+            card_CVV2,
     ):
         # Insert a new bank card entry into the bank_cards table with the provided parameters
         self.cursor.execute(
@@ -258,9 +282,51 @@ class User(sqlite_connection):
         except Error as e:
             print(f"An error occurred: {e}")
 
+    def show_wallet_balance(self):
+        self.cursor.execute("SELECT * FROM Wallet_balance")
+        rows = self.cursor.fetchone()
+        # Return the retrieved rows
+        return rows
+
+    def update_wallet_balance(self, wallet_recharge, card_id_wallet,new_card_balance):
+        self.cursor.execute("UPDATE Wallet_balance SET Wallet_balance = ?", (wallet_recharge,))
+        self.cursor.execute("UPDATE bank_cards SET current_card_balance = ? WHERE id = ?", (new_card_balance, card_id_wallet))
+        self.connector.commit()
+        print("Recharged wallet balance Successful!")
+
+    def update_subscription(self, new_Subscription, user_id):
+        current_date = datetime.now()
+        expiration_date = current_date + timedelta(days=30)
+        expiration_date_str = expiration_date.strftime("%Y-%m-%d %H:%M:%S")
+        self.cursor.execute("UPDATE users SET Subscription = ?, subscription_balance = ? WHERE id = ?",
+                       (new_Subscription, expiration_date_str, user_id))
+        self.connector.commit()
+        print("Update Subscription was Successful!")
+        
+    def check_subscription(self, user_id):
+        current_date = datetime.now()
+        current_date_str = current_date.strftime("%Y-%m-%d %H:%M:%S")
+        self.cursor.execute("SELECT Subscription, subscription_balance FROM users WHERE id = ?", (user_id,))
+        row = self.cursor.fetchone()
+        if row:
+            subscription_type, expiration_date_str = row
+            expiration_date = datetime.strptime(expiration_date_str, "%Y-%m-%d %H:%M:%S")
+            current_date = datetime.now()
+            if current_date <= expiration_date:
+                remaining_days = (expiration_date - current_date).days
+                return remaining_days
+            else:
+                self.cursor.execute("UPDATE users SET Subscription = ?, subscription_balance = ? WHERE id = ?",
+                               ("Silver", "You have not purchased any special subscription", user_id))
+                self.connector.commit()
+                return "Your subscription has expired, and it has changed to the Silver subscription."
+
+        self.connector.commit()
+
 
 if __name__ == "__main__":
     db = sqlite_connection()
     db.create_table()
+    #db.wallet()
     # myuser = User()
     # sqlite_connection.select_data()

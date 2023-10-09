@@ -42,6 +42,7 @@ def main():
     an infinite loop to continue running the program until interrupted.
     """
 
+    global current_card_balance_for_wallet_recharge
     myuser = User()
     exit_flag = False  # Flag variable for controlling loop exit
 
@@ -110,22 +111,24 @@ def main():
             if found_user:
                 while True:
                     print("\nLogin Successful Dear", found_user[1])
-                    print("\nUser Menu:")
+                    print("User Menu:")
                     print("1. Display user information")
                     print("2. Edit user information")
                     print("3. Change password")
                     print("4. BankAccount")
-                    print("5. Log out")
+                    print("5. buy Sanses")
+                    print("6. Log out")
                     user_choice = input("Please enter the desired number for user: ")
 
                     if user_choice == "1":
                         # Displaying user information (username and phone number)
-                        print("Username:", found_user[1])
-                        print("Birthdate:", found_user[3])
-                        print("Registration Date:", found_user[4])
-                        print("Phone Number:", found_user[5])
-                        clear_terminal()
-
+                        print("Username: ", found_user[1])
+                        print("Birthdate: ", found_user[3])
+                        print("Phone Number: ", found_user[4])
+                        print("Registration Date: ", found_user[5])
+                        print("Your subscription type: ", found_user[6])
+                        check_subscription = myuser.check_subscription(found_user[0])
+                        print("Days left until the end of the subscription: ",check_subscription)
                     elif user_choice == "2":
                         # Editing user information
                         new_username = input(
@@ -163,7 +166,8 @@ def main():
                             print("2. Show Card's Bank")
                             print("3. Edit Card Bank")
                             print("4. Delete Card Bank")
-                            print("5. Back to User Menu")
+                            print("5. Wallet")
+                            print("6. Back to User Menu")
                             bank_choice = input(
                                 "Please enter the desired number for user: "
                             )
@@ -188,9 +192,9 @@ def main():
                                         "Enter the expiration date of your card (YY/MM): "
                                     ).split("/")
                                     if (
-                                        len(card_expire_date) == 2
-                                        and len(card_expire_date[0]) == 2
-                                        and len(card_expire_date[1]) == 2
+                                            len(card_expire_date) == 2
+                                            and len(card_expire_date[0]) == 2
+                                            and len(card_expire_date[1]) == 2
                                     ):
                                         break
                                     else:
@@ -278,6 +282,72 @@ def main():
                                 myuser.delete_bank_card(card_id)
                                 clear_terminal()
                             elif bank_choice == "5":
+                                clear_terminal()
+                                print("Welcome to Wallet Manager!")
+                                while True:
+                                    wallet_balance = myuser.show_wallet_balance()
+                                    print("Wallet Balance : ", wallet_balance[0])
+                                    print("\n1. Recharge wallet")
+                                    print("2. Buy a subscription for an account")
+                                    print("3. back to BankAccount's Manager")
+                                    wallet_choice = input("Please enter the desired number for your wallet: ")
+                                    if wallet_choice == "1":
+                                        clear_terminal()
+                                        print("1. Recharge wallet from bank card")
+                                        print(
+                                            "2. Recharge wallet from internet.(Please do not select this option because it requires authentication and cannot be used in this code)")
+                                        user_choice = input("please enter your choice: ")
+                                        if user_choice == "1":
+                                            clear_terminal()
+                                            bank_cards = myuser.select_bank_card()
+                                            for card in bank_cards:
+                                                print("Card Id : ", card[0])
+                                                print("Card Name : ", card[2])
+                                                print("Card Number : ", card[3])
+                                                print("Card Expire Date : ", card[4])
+                                                current_card_balance_for_wallet_recharge = card[5]
+                                                print("Card Balance : ", card[5])
+                                            while True:
+                                                # Prompt the user to enter the card ID they want to edit
+                                                card_id_wallet = int(input("Choose your card id: "))
+                                                # Check if the provided card ID exists in the user's bank cards
+                                                clear_terminal()
+                                                result = myuser.check_card_id(card_id_wallet)
+                                                if result:
+                                                    wallet_balance = myuser.show_wallet_balance()
+                                                    print("Wallet Balance : ", wallet_balance[0])
+                                                    break
+                                                else:
+                                                    print(
+                                                        "id for bank card is wrong. please rty again"
+                                                    )
+                                                    continue
+                                            while True:
+                                                print("Your card balance : ", current_card_balance_for_wallet_recharge)
+                                                wallet_recharge = input(
+                                                    "How much do you want to transfer from the balance of the card to the wallet? ")
+                                                if int(wallet_recharge) <= int(
+                                                        current_card_balance_for_wallet_recharge):
+                                                    new_card_balance = int(
+                                                        current_card_balance_for_wallet_recharge) - int(wallet_recharge)
+                                                    myuser.update_wallet_balance(wallet_recharge, card_id_wallet,
+                                                                                 new_card_balance)
+                                                    break
+                                                else:
+                                                    print(
+                                                        "Please enter an amount less than or equal to your card balance to charge the wallet!!")
+                                                    continue
+                                    elif wallet_choice == "2":
+                                        clear_terminal()
+                                        print("Available subscriptions:\n1. Silver\n2. Golden")
+                                        new_subscription = input("Please Choose and type your Subscription name for your account: ")
+                                        myuser.update_subscription(new_subscription, found_user[0])
+                                    elif wallet_choice == "3":
+                                        clear_terminal()
+                                        break
+
+
+                            elif bank_choice == "6":
                                 # Go back to the User Menu
                                 break
 
