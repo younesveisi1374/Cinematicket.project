@@ -34,7 +34,8 @@ Usage:
 import sqlite3
 from sqlite3 import Error
 from datetime import datetime, timedelta
-
+from enum import Enum
+from prettytable import PrettyTable
 
 # Define a class for managing SQLite database connections
 class sqlite_connection:
@@ -43,7 +44,21 @@ class sqlite_connection:
         self.connector = sqlite3.connect("mydatabase.db")
         # Create a cursor object to execute SQL queries
         self.cursor = self.connector.cursor()
+    
+    def add_sanse(self, movie_name, release_date, hall_capacity, age_limit):
+        self.cursor.execute("INSERT INTO Sanses (Movie_Name, Release_date, hall_capacity, age_limit) VALUES (?, ?, ?, ?)",
+                            (movie_name, release_date, hall_capacity, age_limit))
+        self.connector.commit()
 
+    def delete_sanse(self, sans_id):
+        self.cursor.execute("DELETE FROM Sanses WHERE id=?", (sans_id,))
+        self.connector.commit()
+
+    def get_all_sanses(self):
+        self.cursor.execute("SELECT * FROM Sanses")
+        rows = self.cursor.fetchall()
+        return rows
+    
     def create_table(self):
         # Create a table for user registration data if it doesn't already exist
         self.cursor.execute(
@@ -55,7 +70,8 @@ class sqlite_connection:
                 number_phone Text,
                 registration_date TEXT,
                 Subscription TEXT DEFAULT 'Silver',
-                subscription_balance TEXT DEFAULT 'You have not purchased any special subscription'
+                subscription_balance TEXT DEFAULT 'You have not purchased any special subscription',
+                role_user TEXT DEFAULT 'User',
                 )
         """
         )
@@ -70,6 +86,15 @@ class sqlite_connection:
                         current_card_balance INTEGER NOT NULL,
                         card_CVV2 INTEGER NOT NULL,
                         FOREIGN KEY (user_id) REFERENCES users(id))
+            """
+        )
+        self.cursor.execute(
+            """CREATE TABLE  IF NOT EXISTS Sanses(
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        Movie_Name	TEXT NOT NULL,
+                        Release_date	TEXT NOT NULL,
+                        hall_capacity	INTEGER NOT NULL,
+                        age_limit	INTEGER NOT NULL)
             """
         )
 
@@ -98,18 +123,50 @@ class sqlite_connection:
         # Commit the changes made to the database
         self.connector.commit()
 
+
+class UserRole(Enum):
+    USER = "User"
+    ADMIN = "Admin"
+    
+    
 class User(sqlite_connection):
     def __init__(self):
         super().__init__()
         self.registration_date = datetime.now()
-
-    def register_user(self, username, password, birthdate, number_phone=None):
+        self.admin_code = "7798683"
+        self.max_wrong_attempts = 2
+        self.wrong_attempts = 0
+        
+    def get_user_role(self):
+        print("What is your role:\n1. Admin user\n2. Regular user")
+        get_role=input("Please Choose your role ro registration: ")
+        if get_role =="1":
+            while self.wrong_attempts < self.max_wrong_attempts:
+                code_input = input("Enter the admin code: ")
+                if code_input == self.admin_code:
+                    user_role = UserRole.ADMIN.value
+                    break
+                else:
+                    print("Wrong code. Please try again.")
+                    self.wrong_attempts += 1
+            if code_input == "2":
+                user_role = UserRole.USER.value
+        return user_role
+    def get_server_role(self, user_id):
+        self.cursor.execute(
+            "SELECT role_user FROM users WHERE id=?",
+            (user_id,),  # Include a comma after user_id to make it a tuple
+        )
+        result = self.cursor.fetchone()
+        return result
+         
+    def register_user(self, username, password, birthdate, role_user, number_phone=None):
         # Insert user registration data into the "users" table
         self.cursor.execute(
             """INSERT INTO users(
-                username,password,birthdate,number_phone,registration_date
-                ) VALUES (?,?,?,?,?)""",
-            (username, password, birthdate, number_phone, self.registration_date),
+                username,password,birthdate,number_phone,registration_date,role_user
+                ) VALUES (?,?,?,?,?,?)""",
+            (username, password, birthdate, number_phone, self.registration_date, role_user),
         )
         # Commit the changes made to the database
         self.connector.commit()
@@ -344,6 +401,62 @@ class User(sqlite_connection):
                 return "Your subscription has expired, and it has changed to the Silver subscription."
 
         self.connector.commit()
+    def buy_sanse(self, sanse_id):
+        self.cursor.execute("""
+                            SELECT * FROM Sanses WHERE id=?""",(sanse_id,))
+        rows = self.cursor.fetchall()
+        return rows
+    
+    def get_available_sanses(self, user_birthday, user_membership_months):
+        # تابعی برای گرفتن لیستی از سانس‌های موجود با توجه به تاریخ تولد کاربر و مدت زمان عضویت
+        available_sanses = []
+        today = datetime.date.today()
+        for sans in self.sanses:
+            release_date = datetime.datetime.strptime(sans["release_date"], "%Y-%m-%d").date()
+            age_limit = sans["age_limit"]
+            if release_date <= today and sans["hall_capacity"] > 0 and age_limit <= user_membership_months:
+                if today == user_birthday:
+                    sans["hall_capacity"] /= 2  # تخفیف نیم‌بها در روز تولد
+                available_sanses.append(sans)
+        return available_sanses
+
+    def reserve_sans(self, user_age, selected_sans):
+        # تابعی برای رزرو یک سانس با توجه به سن کاربر و سانس انتخابی
+        if selected_sans in self.sanses:
+            if selected_sans["hall_capacity"] > 0 and user_age >= selected_sans["age_limit"]:
+                selected_sans["hall_capacity"] -= 1
+                return True
+        return False
+    
+      
+class Admin(sqlite_connection):
+    def __init__(self):
+        super().__init__()
+        self.role = UserRole.ADMIN
+
+    def admin_add_sanse(self, movie_name, release_date, hall_capacity, age_limit):
+        self.add_sanse(movie_name, release_date, hall_capacity, age_limit)
+
+    def admin_delete_sanse(self, sans_id):
+        self.delete_sanse(sans_id)
+
+    def admin_get_all_sanses(self):
+        sanses = self.get_all_sanses()
+        table = PrettyTable(["ID","Movie Name", "Release Date", "Hall Capacity", "Age Limit"],border=True)
+        separator_row = ["-" * 5, "-" * 20, "-" * 13, "-" * 15, "-" * 9]
+        for sans in sanses:
+            id_movie = sans[0]
+            movie_name = sans[1]
+            release_date = sans[2]
+            hall_capacity = sans[3]
+            age_limit = sans[4]
+            
+            table.add_row([id_movie,movie_name, release_date, hall_capacity, age_limit])
+            table.add_row(separator_row)
+        table.del_row(-1)
+        print(table.get_string())
+
+
 
 
 if __name__ == "__main__":
