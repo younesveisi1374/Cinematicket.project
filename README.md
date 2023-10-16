@@ -13,6 +13,7 @@ In an increasingly digital world, managing personal financial information and us
 - `users.py`: Defines the `User` class and essential functionalities.
 - `test_main.py`: A unit test file for testing the functionality of `main.py`.
 - `mydatabase.db`: SQLite3 database for data storage.
+- `CinemaTicket.exe` : is the standalone executable file for CinemaTicket project.
 
 ### `main.py`
 
@@ -115,7 +116,55 @@ Note:
 
 In essence, `mydatabase.db` ensures secure data storage and accessibility, serving as the backbone of this user and bank card management system. It maintains user information, manages bank card data, tracks wallet balances, and enables subscription management, all while ensuring data integrity and security.
 
+### `CinemaTicket.exe`
 
+#### Building an Executable
+
+This project aims to create an executable file from a Python script using PyInstaller. The following steps will guide you through the process:
+
+1. **Install PyInstaller**
+
+   Before you can use PyInstaller, you need to install it if you haven't already. You can install it using `pip`:
+
+   ```bash
+   pip install pyinstaller
+   ```
+2. **Mange exe file**
+   To run the CinemaTicket.exe file correctly, you must remove this file from the dist folder and place it next to the database file so that the login operation is performed based on the previous information. But if you intend to use the data for the first login, you can use it without a database because the program creates a database file next to itself in the first run.
+
+2. **Navigate to Your Project's Root Directory**
+
+   Using the command line, navigate to the root directory of your project. This should be the directory where your `main.py` script is located.
+
+3. **Run PyInstaller**
+
+   Use the following command to create a standalone executable:
+
+   ```bash
+   pyinstaller .\main.py --name=CinemaTicket --onefile
+   ```
+
+   - `main.py`: Replace this with the name of your Python script.
+   - `--name=CinemaTicket`: This flag allows you to specify the name of the generated executable (in this case, `CinemaTicket`).
+   - `--onefile`: This flag bundles everything into a single executable file. Alternatively, you can omit this flag to generate multiple files.
+
+4. **Locate the Executable**
+
+   Once the process is complete, you will find a `dist` directory inside your project's root directory. Inside the `dist` directory, you will find your standalone executable (e.g., `CinemaTicket.exe` on Windows).
+
+5. **Running the Executable**
+
+   You can now run your executable like any other application. For instance, on Windows, simply double-click the `CinemaTicket.exe` file.
+
+6. **Optional: Customizing the Build**
+
+   PyInstaller provides several options for customizing the build process. For example, you can specify additional paths, exclude specific modules, and more. Refer to the [PyInstaller Documentation](https://pyinstaller.readthedocs.io/en/stable/usage.html) for advanced configurations.
+
+By following these steps, you can easily create an executable from your Python script using PyInstaller.
+
+Remember to include any necessary data files, such as images or configuration files, in the same directory as your Python script to ensure they are bundled correctly in the executable.
+
+Feel free to modify the explanations to better fit your project's structure and requirements.
 ...
 
 ## Usage
